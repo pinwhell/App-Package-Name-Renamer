@@ -20,7 +20,7 @@ public:
     static bool ReplaceAllOcurrInFile(const std::string& filePath, const std::string& toReplace, const std::string& with);
     static void ReplaceAllOcurrInFilesFromRoot(const std::string& rootPath, const std::string& toReplace, const std::string& with);
     static bool MoveAllFiles(const std::string& oldRoot, std::string& newRoot, int flags = 0);
-    static bool CopyAllFiles(const std::string& oldRoot, std::string& newRoot, int flags);
+    static bool CopyAllFiles(const std::string& oldRoot, std::string& newRoot, int flags = 0);
     static bool MakePath(const std::string& fullPath);
     static int DeleteDirectory(const std::string& refcstrRootDirectory, bool bDeleteSubdirectories = true);
 };

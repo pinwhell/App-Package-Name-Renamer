@@ -5,6 +5,7 @@
 #include "Utils.h"
 #include "FileHelper.h"
 #include <Windows.h>
+#include "ThreadPool.h"
 
 bool FileHelper::FileExist(const std::string& filePathStr)
 {
@@ -95,6 +96,7 @@ void FileHelper::ReplaceAllOcurrInFilesFromRoot(const std::string& rootPath, con
 {
     DIR* pDir = opendir(rootPath.c_str());
     struct dirent* currEnt = nullptr;
+    ThreadPool threadPool;
 
     while ((currEnt = readdir(pDir)) != nullptr)
     {
@@ -102,12 +104,20 @@ void FileHelper::ReplaceAllOcurrInFilesFromRoot(const std::string& rootPath, con
             !strcmp(currEnt->d_name, "."))
             continue;
 
+        bool bIsDir = currEnt->d_type & DT_DIR;
+        bool bIsFile = currEnt->d_type & S_IFREG;
+
         std::string currPath = rootPath + "/" + std::string(currEnt->d_name);
 
-        if (currEnt->d_type & DT_DIR)
-            ReplaceAllOcurrInFilesFromRoot(currPath, toReplace, with);
-        else if (currEnt->d_type & S_IFREG)
-            ReplaceAllOcurrInFile(currPath, toReplace, with);
+        threadPool.enqueue([&](std::string _currPath, std::string _toReplace, std::string _with, bool _bIsDir, bool _bIsFile) {
+
+            if (_bIsDir)
+                ReplaceAllOcurrInFilesFromRoot(_currPath, _toReplace, _with);
+            else if (_bIsFile)
+                ReplaceAllOcurrInFile(_currPath, _toReplace, _with);
+
+        }, currPath, toReplace, with, bIsDir, bIsFile);
+            
     }
 }
 
@@ -132,7 +142,10 @@ bool FileHelper::MoveAllFiles(const std::string& oldRoot, std::string& newRoot, 
 
             if (currEnt->d_type & DT_DIR)
             {
-                bool bOperationResult = MoveAllFiles(oldRootPath, newRootPath);
+                if (!FileHelper::FileExist(newRootPath))
+                    CreateDirectoryA(newRootPath.c_str(), NULL);
+
+                bool bOperationResult = MoveAllFiles(oldRootPath, newRootPath, flags);
 
                 if (!bOperationResult && !bIgnoreFilesError)
                 {
@@ -252,7 +265,10 @@ bool FileHelper::CopyAllFiles(const std::string& oldRoot, std::string& newRoot, 
 
             if (currEnt->d_type & DT_DIR)
             {
-                bool bOperationResult = MoveAllFiles(oldRootPath, newRootPath);
+                if (!FileHelper::FileExist(newRootPath))
+                    CreateDirectoryA(newRootPath.c_str(), NULL);
+
+                bool bOperationResult = CopyAllFiles(oldRootPath, newRootPath, flags);
 
                 if (!bOperationResult && !bIgnoreFilesError)
                 {

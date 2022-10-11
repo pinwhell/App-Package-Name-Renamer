@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include "RandomHelper.h"
+#include "ThreadPool.h"
 
 bool GradleAppPnr::Init()
 {
@@ -54,7 +55,7 @@ bool AppPnr::HandlePackageFolders()
 
 	if (FileHelper::MakePath(newPackageFullPath))
 	{
-		bSuccess = FileHelper::CopyAllFiles(oldPackageFullPath, newPackageFullPath, MAF_UNLINK_EMPTY_DIRS);
+		bSuccess = FileHelper::CopyAllFiles(oldPackageFullPath, newPackageFullPath);
 		
 		HandleCleanUp(!bSuccess);
 	}
