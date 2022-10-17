@@ -45,7 +45,7 @@ For projects that doesnt have the standart default path to the java source root,
 ```
 --java-source-path [new_path_relative_from_root] # If not present in cmdline, Default is 'app/src/main/java'
 ```
-same with the build.gradle, if not in default path 'app/build.gradle', you will need to redefine its location, to get automatic old packet name, using:
+same with the build.gradle, if argument not defined in the cmdline args, then default path will be 'app/build.gradle', otherwise if you define it you will need to redefine its location, to automaticly get automatic old packet name, to change the build.gradle location, use:
 ```
 --build-gradle-path [new_path_to_build.gradle] # Default is 'app/build.gradle'
 ```
