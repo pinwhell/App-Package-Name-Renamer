@@ -18,7 +18,7 @@ Most simple example:
 ```
 AppPnr -s [your_project_root] 
 ex.
-AppPnr -s Packge/Here/MyPackageName
+AppPnr -s My/Project/Rooth/Here
 ```
 
 To define a new package name:
