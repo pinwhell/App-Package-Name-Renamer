@@ -43,7 +43,7 @@ AppPnr -s Packge/Here/MyPackageName -r com.mynew.package
 ```
 For projects that doesnt have the standart default path to the java source root, this is used for the automatic rename of the package directories, you will need to manually define it, using:
 ```
---java-source-path [new_path_relative_from_root] # Default is 'app/src/main/java'
+--java-source-path [new_path_relative_from_root] # If not present in cmdline, Default is 'app/src/main/java'
 ```
 same with the build.gradle, if not in default path 'app/build.gradle', you will need to redefine its location, to get automatic old packet name, using:
 ```
