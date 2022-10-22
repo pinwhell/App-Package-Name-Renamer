@@ -21,7 +21,31 @@ bool GradleAppPnr::Init()
 		setOldPackageName(oldPkgName);
 	}
 
+	mGradlePath = mProjectEntryPath + "/.gradle";
+
+
+	// Checking Gradle Folder Exist
+	struct stat st;
+
+	if (stat(mGradlePath.c_str(), &st))
+	{
+		std::cout << "Gradle Folder not Found, is this project Gradle?" << std::endl;
+
+		return false;
+	}
+
 	return AppPnr::Init();
+}
+
+void GradleAppPnr::Run()
+{
+	bool bOk = true;
+
+	if ((bOk = CleanCache()) != true)
+		std::cout << "Unable to Clear the Gradle Cache" << std::endl;
+
+	if (bOk)
+		AppPnr::Run();
 }
 
 void GradleAppPnr::TryFindPackageName(std::string& outPkgName)
@@ -35,6 +59,11 @@ void GradleAppPnr::TryFindPackageName(std::string& outPkgName)
 	}
 }
 
+void GradleAppPnr::setAppPath(const std::string& _appPath)
+{
+	mAppPath = _appPath;
+}
+
 void GradleAppPnr::setBuildGradlePath(const std::string& _buildGradlePath)
 {
 	mBuildGradlePath = _buildGradlePath;
@@ -43,6 +72,47 @@ void GradleAppPnr::setBuildGradlePath(const std::string& _buildGradlePath)
 void GradleAppPnr::setApplicationIdArgName(const std::string& _appIdArgName)
 {
 	mAppIdArgName = _appIdArgName;
+}
+
+bool GradleAppPnr::HasCache()
+{
+	std::vector<std::string> allOcurrences;
+	std::string fullAppIntermediariesPath = mProjectEntryPath + "/" + mAppPath + "/build/intermediaries";
+
+	bool bHasGradleCache = FileHelper::LookupFilesOcurrencesByName(mGradlePath, "executionHistory", allOcurrences);
+	bool bHasIntermediariesCache = FileHelper::IsFolderEmpty(fullAppIntermediariesPath);
+
+	return bHasGradleCache || bHasIntermediariesCache;
+}
+
+bool GradleAppPnr::CleanCache()
+{
+	std::vector<std::string> allOcurrences;
+	std::string fullAppIntermediariesPath = mProjectEntryPath + "/" + mAppPath + "build/intermediates";
+
+	bool bHasGradleCache = FileHelper::LookupFilesOcurrencesByName(mGradlePath, "executionHistory", allOcurrences);
+	bool bHasIntermediariesCache = !FileHelper::IsFolderEmpty(fullAppIntermediariesPath);
+
+	if (bHasIntermediariesCache)
+	{
+		std::cout << "Erasing Intermediates Cache" << std::endl;
+
+		if (FileHelper::DeleteDirectory(fullAppIntermediariesPath))
+			return false;
+	}
+
+	if (bHasGradleCache)
+	{
+		std::cout << "Erasing Gradle Cache" << std::endl;
+
+		for (std::string ocurrence : allOcurrences)
+		{		
+			if (DeleteFileA(ocurrence.c_str()) == 0)
+				return false;
+		}
+	}
+
+	return true;
 }
 
 bool AppPnr::HandlePackageFolders()
@@ -109,7 +179,7 @@ bool AppPnr::Init()
 {
 	if (mNewPkgName.empty())
 	{
-		std::string tempNewPackageName = RAND_PACKAGE_PREFIX + RandomHelper::getRandomSenseString(RandomHelper::getRandomInBtw(5, 8));
+		std::string tempNewPackageName = RAND_PACKAGE_PREFIX + RandomHelper::getRandomSenseString(RandomHelper::getRandomInBtw(5, 8)) + "." + RandomHelper::getRandomSenseString(RandomHelper::getRandomInBtw(5, 8));
 
 		setNewPackageName(tempNewPackageName);
 	}

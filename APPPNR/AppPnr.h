@@ -3,7 +3,13 @@
 #include <vector>
 #include <string>
 
-#define RAND_PACKAGE_PREFIX "com.your."
+#define RAND_PACKAGE_PREFIX "com."
+
+class Cache {
+public:
+	virtual bool HasCache() = 0;
+	virtual bool CleanCache() = 0;
+};
 
 class AppPnr
 {
@@ -40,18 +46,25 @@ public:
 	void setReplaceUnderscoredPackageName(bool replaceUnderscoredPkgName);
 };
 
-class GradleAppPnr : public AppPnr {
+class GradleAppPnr : public AppPnr , public Cache {
 
 private:
+	std::string mGradlePath;
 	std::string mBuildGradlePath;
 	std::string mAppIdArgName;
+	std::string mAppPath;
 
 public:
 	bool Init() override;
+	void Run() override;
 
 	void TryFindPackageName(std::string& outPkgName) override;
 
+	void setAppPath(const std::string& _appPath);
 	void setBuildGradlePath(const std::string& _buildGradlePath);
 	void setApplicationIdArgName(const std::string& _appIdArgName);
+
+	bool HasCache() override;
+	bool CleanCache() override;
 };
 

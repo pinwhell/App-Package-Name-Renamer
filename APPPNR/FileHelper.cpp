@@ -163,6 +163,82 @@ bool FileHelper::MoveAllFiles(const std::string& oldRoot, std::string& newRoot, 
     return bSucess;
 }
 
+bool FileHelper::LookupOcurrencesByName(const std::string& rootPath, const std::string& name, std::vector<std::string>& outOcurrences)
+{
+    DIR* pDir = opendir(rootPath.c_str());
+    struct dirent* currEnt = nullptr;
+
+    if (pDir)
+    {
+        while ((currEnt = readdir(pDir)) != nullptr)
+        {
+            if (!strcmp(currEnt->d_name, "..") ||
+                !strcmp(currEnt->d_name, "."))
+                continue;
+
+            std::string currPath = rootPath + "/" + std::string(currEnt->d_name);
+
+            if (!strcmp(currEnt->d_name, name.c_str()))
+                outOcurrences.push_back(currPath);
+
+            if (currEnt->d_type & DT_DIR)
+                LookupOcurrencesByName(currPath, name, outOcurrences);
+        }
+    }
+
+    return outOcurrences.size() != 0;
+}
+
+bool FileHelper::IsFolderEmpty(const std::string& entryPath)
+{
+    DIR* pDir = opendir(entryPath.c_str());
+    struct dirent* currEnt = nullptr;
+
+    if (pDir)
+    {
+        while ((currEnt = readdir(pDir)) != nullptr)
+        {
+            if (!strcmp(currEnt->d_name, "..") ||
+                !strcmp(currEnt->d_name, "."))
+                continue;
+
+            return false;
+        }
+
+        closedir(pDir);
+    }
+
+    return true;
+}
+
+bool FileHelper::LookupFilesOcurrencesByName(const std::string& rootPath, const std::string& name, std::vector<std::string>& outOcurrences, int flags)
+{
+    bool bStrictMatch = flags & LFON_STRICT_MATCH;
+
+    DIR* pDir = opendir(rootPath.c_str());
+    struct dirent* currEnt = nullptr;
+
+    if (pDir)
+    {
+        while ((currEnt = readdir(pDir)) != nullptr)
+        {
+            if (!strcmp(currEnt->d_name, "..") ||
+                !strcmp(currEnt->d_name, "."))
+                continue;
+
+            std::string currPath = rootPath + "/" + std::string(currEnt->d_name);
+
+            if (currEnt->d_type & DT_DIR)
+                LookupFilesOcurrencesByName(currPath, name, outOcurrences, flags);
+            else if(currEnt->d_type & S_IFREG && 
+                (bStrictMatch ? !strcmp(currEnt->d_name, name.c_str()) : (strstr(currEnt->d_name, name.c_str()) != nullptr)))
+                outOcurrences.push_back(currPath);
+        }
+    }
+
+    return outOcurrences.size() != 0;
+}
+
 int FileHelper::DeleteDirectory(const std::string& refcstrRootDirectory, bool bDeleteSubdirectories)
 {
     bool            bSubdirectory = false;       // Flag, indicating whether

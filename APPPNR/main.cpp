@@ -59,8 +59,15 @@ cli_main(
 		"new package name to replace in the app project"
 	);
 
-	cli::RequiredArgument<std::string> projectPath(
+	cli::OptionalArgument<std::string> projectPath(
+		".",
 		"proj-path",
+		"where is the root of the project located"
+	);
+
+	cli::OptionalArgument<std::string> appPathArg(
+		"app/",
+		"app-path",
 		"where is the root of the project located"
 	);
 
@@ -78,7 +85,8 @@ cli_main(
 		if (/*gradle.is_present()*/ true) // By Default gradle
 		{
 			GradleAppPnr* pGradleAppPnr = (GradleAppPnr*) (pAppPnrTool = new GradleAppPnr());
-
+			
+			pGradleAppPnr->setAppPath(*appPathArg);
 			pGradleAppPnr->setBuildGradlePath(*buildGradlePathArg);
 			pGradleAppPnr->setApplicationIdArgName(*gradlePkgNameArgNameArg);
 		}
